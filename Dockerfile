@@ -43,6 +43,46 @@ RUN set -eux \
 RUN set -eu; \
   pip3 install awscli
 
+#
+# Install Docker client
+#
+ENV DOCKER_CHANNEL=stable \
+    DOCKER_VERSION=19.03.13
+
+RUN set -eu; \
+  savedAptMark="$(apt-mark showmanual)"; \
+  apt-get update; \
+  apt-get install -y \
+    wget \
+  ; \
+  \
+# Download and extract Docker
+  dpkgArch="$(dpkg --print-architecture)"; \
+  case "$dpkgArch" in \
+	amd64) dockerArch='x86_64' ;; \
+	*) echo >&2 "error: unsupported architecture: $dpkgArch" ;; \
+  esac; \
+  \
+  if ! wget -O docker.tgz "https://download.docker.com/linux/static/${DOCKER_CHANNEL}/${dockerArch}/docker-${DOCKER_VERSION}.tgz"; then \
+    echo >&2 "error: failed to download 'docker-${DOCKER_VERSION}' from '${DOCKER_CHANNEL}' for '${dockerArch}'"; \
+	exit 1; \
+  fi; \
+  tar --extract \
+	  --file docker.tgz \
+	  --strip-components 1 \
+	  --directory /usr/local/bin/ \
+  ; \
+  rm docker.tgz; \
+  \
+# Cleanup packages required to pull Docker
+  apt-mark auto '.*' > /dev/null; \
+	[ -z "$savedAptMark" ] || apt-mark manual $savedAptMark > /dev/null; \
+	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+  \
+# Smoke test
+  dockerd --version; \
+  docker --version
+
 ENV AWS_DEFAULT_REGION="eu-central-1" \
     GRADLE_USER_HOME=".gradle"
 
