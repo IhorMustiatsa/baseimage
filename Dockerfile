@@ -86,4 +86,10 @@ RUN set -eu; \
 ENV AWS_DEFAULT_REGION="eu-central-1" \
     GRADLE_USER_HOME=".gradle"
 
-CMD exec "$@"
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+
+RUN set -eu; \
+  chmod 0755 /docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
