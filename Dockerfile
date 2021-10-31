@@ -86,9 +86,6 @@ RUN set -eu; \
 ENV AWS_DEFAULT_REGION="eu-central-1" \
     GRADLE_USER_HOME=".gradle"
 
-RUN set -eux \
-  && apt-get -y install build-essential libz-dev zlib1g-dev
-
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 
 RUN set -eu; \
